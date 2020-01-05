@@ -1,11 +1,11 @@
 {
-  "name": "quasar-list",
+  "name": "daily",
   "version": "0.0.1",
-  "description": "A Quasar Framework app",
-  "productName": "Quasar App",
-  "cordovaId": "com.nacho.dev.quasar-list",
+  "description": "Yesterday, Today, Blockers",
+  "productName": "Daily",
+  "cordovaId": "net.ceg-lab.daily",
   "capacitorId": "",
-  "author": "yoelnacho <nacho.test.developer@gmail.com>",
+  "author": "yoelnacho <igancio.arguello@comprandoengrupo.net>",
   "private": true,
   "scripts": {
     "dev": "quasar dev",
