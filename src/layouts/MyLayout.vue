@@ -10,12 +10,16 @@
           icon="menu"
           aria-label="Menu"
         />
+        <q-space />
+        <q-btn flat round dense icon="add" />
       </q-toolbar>
-      <div class="q-px-lg q-pt-xl q-mb-md">
-        <div class="text-h3">Todo</div>
-        <div class="text-subtitle1">{{ todayDate }}</div>
-      </div>
-      <q-img src="statics/bg.jpg" class="header-image absolute-top" />
+      <q-toolbar inset>
+        <q-toolbar-title>
+          <strong>Daily</strong>
+          <span class="text-subtitle2 q-pl-sm">({{ todayDate }})</span>
+        </q-toolbar-title>
+      </q-toolbar>
+      <!-- <q-img src="statics/bg.jpg" class="header-image absolute-top" /> -->
     </q-header>
 
     <q-drawer
