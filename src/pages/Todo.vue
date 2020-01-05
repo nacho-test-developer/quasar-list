@@ -6,14 +6,20 @@
         @keyup.enter="addTask"
         filled
         placeholder="Add Task"
-        maxlength="12"
         dense
         square
         bg-color="white"
         class="col"
       >
         <template v-slot:append>
-          <q-btn @click="addTask" round dense flat icon="add" />
+          <q-btn
+            @click="addTask"
+            v-show="newTask"
+            round
+            dense
+            flat
+            icon="add"
+          />
         </template>
       </q-input>
     </div>
@@ -21,14 +27,16 @@
       <q-item
         v-for="(task, index) in tasks"
         :key="task.title"
-        v-ripple
         clickable
+        v-ripple
         :class="{ 'done bg-blue-1': task.done }"
-        @click="task.done = !task.done"
+        @click.stop="edit(task, index)"
       >
         <q-item-section avatar>
+          <!-- class="no-pointer-events" -->
           <q-checkbox
-            class="no-pointer-events"
+            @click.stop="task.done = !task.done"
+            clickable
             v-model="task.done"
             color="primary"
           />
@@ -68,7 +76,7 @@ export default {
         },
         {
           title:
-            "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Explicabo, hic optio, ea animi deleniti ratione ullam voluptatibus quidem earum ipsa porro eaque atque inventore fugiat itaque cum! Adipisci, corporis eius.",
+            "Test",
           done: false
         }
       ]
@@ -89,11 +97,29 @@ export default {
         });
     },
     addTask() {
-      this.tasks.push({
-        title: this.newTask,
-        done: false
-      });
-      this.newTask = "";
+      if (this.newTask) {
+        this.tasks.push({
+          title: this.newTask,
+          done: false
+        });
+        this.newTask = "";
+      }
+    },
+    edit(task, i) {
+      this.$q
+        .dialog({
+          title: "Edit task",
+          prompt: {
+            model: task.title,
+            type: "text" // optional
+          },
+          cancel: true,
+          persistent: true
+        })
+        .onOk(data => {
+          this.tasks[i].title = data;
+          console.log(">>>> OK, received", data);
+        });
     }
   }
 };
