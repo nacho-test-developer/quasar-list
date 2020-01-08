@@ -23,38 +23,29 @@
         </template>
       </q-input>
     </div>
-    <q-list class="bg-white" separator bordered>
-      <q-item
+    <q-list class="bg-white" separator>
+      <!--  -->
+      <q-slide-item
         v-for="(task, index) in tasks"
         :key="task.title"
         clickable
         v-ripple
         :class="{ 'done bg-blue-1': task.done }"
-        @click.stop="edit(task, index)"
+        @left="onLeft(task, $event)"
+        @right="onRight(index, $event)"
+        right-color="red"
       >
-        <q-item-section avatar>
-          <!-- class="no-pointer-events" -->
-          <q-checkbox
-            @click.stop="task.done = !task.done"
-            clickable
-            v-model="task.done"
-            color="primary"
-          />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>{{ task.title }}</q-item-label>
-        </q-item-section>
-        <q-item-section v-if="task.done" side>
-          <q-btn
-            @click.stop="deleteTask(index)"
-            flat
-            dense
-            round
-            color="primary"
-            icon="delete"
-          />
-        </q-item-section>
-      </q-item>
+        <template v-slot:left>
+          <q-icon name="done" />
+        </template>
+        <template v-slot:right>
+          <q-icon name="delete" />
+        </template>
+
+        <q-item>
+          <q-item-section @click.stop="edit(task, index)" class="text">{{ task.title }}</q-item-section>
+        </q-item>
+      </q-slide-item>
     </q-list>
   </q-page>
 </template>
@@ -83,17 +74,41 @@ export default {
     };
   },
   methods: {
-    deleteTask(i) {
+    onLeft (task, { reset }) {
+      task.done = !task.done
+      this.finalize2(reset)
+    },
+    onRight (val, { reset }) {
+      this.deleteTask(val, reset)
+    },
+    finalize (reset) {
+      this.timer = setTimeout(() => {
+        reset()
+      }, 0)
+    },
+    finalize2 (reset) {
+      this.timer = setTimeout(() => {
+        reset()
+      }, 300)
+    },
+    beforeDestroy () {
+      clearTimeout(this.timer)
+    },
+    deleteTask(i, reset) {
       this.$q
         .dialog({
-          title: "Confirm",
-          message: "Really delete?",
+          title: "Please confirm",
+          message: "Really do you want to delete this item?",
           cancel: true,
           persistent: true
         })
         .onOk(() => {
           this.tasks.splice(i, 1);
-          this.$q.notify("Nice");
+          this.$q.notify("This item was removed");
+          this.finalize(reset)
+        })
+        .onCancel(() => {
+          this.finalize(reset)
         });
     },
     addTask() {
@@ -117,8 +132,7 @@ export default {
           persistent: true
         })
         .onOk(data => {
-          this.tasks[i].title = data;
-          console.log(">>>> OK, received", data);
+          this.tasks[i].title = data
         });
     }
   }
@@ -127,7 +141,8 @@ export default {
 
 <style lang="scss">
 .done {
-  .q-item__label {
+  .q-item__label,
+  .text {
     text-decoration: line-through;
     color: #bbb;
   }
