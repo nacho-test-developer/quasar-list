@@ -10,16 +10,14 @@
   "scripts": {
     "dev": "quasar dev",
     "pwa": "quasar dev -m pwa",
-    "build": "quasar build",
-    "deploy": "push-dir --dir=dist/spa --remote=gh-pages --branch=master"
+    "build": "quasar build"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
     "quasar": "^1.0.0"
   },
   "devDependencies": {
-    "@quasar/app": "^1.0.0",
-    "push-dir": "^0.4.1"
+    "@quasar/app": "^1.0.0"
   },
   "engines": {
     "node": ">= 8.9.0",
