@@ -6,47 +6,46 @@
         @keyup.enter="addTask"
         filled
         placeholder="Add Task"
-        maxlength="12"
         dense
         square
         bg-color="white"
         class="col"
       >
         <template v-slot:append>
-          <q-btn @click="addTask" round dense flat icon="add" />
+          <q-btn
+            @click="addTask"
+            v-show="newTask"
+            round
+            dense
+            flat
+            icon="add"
+          />
         </template>
       </q-input>
     </div>
-    <q-list class="bg-white" separator bordered>
-      <q-item
+    <q-list class="bg-white" separator>
+      <!--  -->
+      <q-slide-item
         v-for="(task, index) in tasks"
         :key="task.title"
-        v-ripple
         clickable
+        v-ripple
         :class="{ 'done bg-blue-1': task.done }"
-        @click="task.done = !task.done"
+        @left="onLeft(task, $event)"
+        @right="onRight(index, $event)"
+        right-color="red"
       >
-        <q-item-section avatar>
-          <q-checkbox
-            class="no-pointer-events"
-            v-model="task.done"
-            color="primary"
-          />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>{{ task.title }}</q-item-label>
-        </q-item-section>
-        <q-item-section v-if="task.done" side>
-          <q-btn
-            @click.stop="deleteTask(index)"
-            flat
-            dense
-            round
-            color="primary"
-            icon="delete"
-          />
-        </q-item-section>
-      </q-item>
+        <template v-slot:left>
+          <q-icon name="done" />
+        </template>
+        <template v-slot:right>
+          <q-icon name="delete" />
+        </template>
+
+        <q-item>
+          <q-item-section @click.stop="edit(task, index)" class="text">{{ task.title }}</q-item-section>
+        </q-item>
+      </q-slide-item>
     </q-list>
   </q-page>
 </template>
@@ -68,32 +67,73 @@ export default {
         },
         {
           title:
-            "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Explicabo, hic optio, ea animi deleniti ratione ullam voluptatibus quidem earum ipsa porro eaque atque inventore fugiat itaque cum! Adipisci, corporis eius.",
+            "Test",
           done: false
         }
       ]
     };
   },
   methods: {
-    deleteTask(i) {
+    onLeft (task, { reset }) {
+      task.done = !task.done
+      this.finalize2(reset)
+    },
+    onRight (val, { reset }) {
+      this.deleteTask(val, reset)
+    },
+    finalize (reset) {
+      this.timer = setTimeout(() => {
+        reset()
+      }, 0)
+    },
+    finalize2 (reset) {
+      this.timer = setTimeout(() => {
+        reset()
+      }, 300)
+    },
+    beforeDestroy () {
+      clearTimeout(this.timer)
+    },
+    deleteTask(i, reset) {
       this.$q
         .dialog({
-          title: "Confirm",
-          message: "Really delete?",
+          title: "Please confirm",
+          message: "Really do you want to delete this item?",
           cancel: true,
           persistent: true
         })
         .onOk(() => {
           this.tasks.splice(i, 1);
-          this.$q.notify("Nice");
+          this.$q.notify("This item was removed");
+          this.finalize(reset)
+        })
+        .onCancel(() => {
+          this.finalize(reset)
         });
     },
     addTask() {
-      this.tasks.push({
-        title: this.newTask,
-        done: false
-      });
-      this.newTask = "";
+      if (this.newTask) {
+        this.tasks.push({
+          title: this.newTask,
+          done: false
+        });
+        this.newTask = "";
+      }
+    },
+    edit(task, i) {
+      this.$q
+        .dialog({
+          title: "Edit task",
+          prompt: {
+            model: task.title,
+            type: "text" // optional
+          },
+          cancel: true,
+          persistent: true
+        })
+        .onOk(data => {
+          this.tasks[i].title = data
+        });
     }
   }
 };
@@ -101,7 +141,8 @@ export default {
 
 <style lang="scss">
 .done {
-  .q-item__label {
+  .q-item__label,
+  .text {
     text-decoration: line-through;
     color: #bbb;
   }
