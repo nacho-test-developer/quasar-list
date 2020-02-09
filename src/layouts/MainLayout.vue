@@ -19,7 +19,7 @@
           <span class="text-subtitle2 q-pl-sm">({{ todayDate }})</span>
         </q-toolbar-title>
       </q-toolbar>
-      <!-- <q-img src="statics/bg.jpg" class="header-image absolute-top" /> -->
+      <q-img src="https://static.vecteezy.com/system/resources/previews/000/101/253/non_2x/vector-free-abstract-background-1.jpg" class="header-image absolute-top" />
     </q-header>
 
     <q-drawer
@@ -50,15 +50,24 @@
               Help
             </q-item-section>
           </q-item>
+          <q-item to="/new" exact clickable v-ripple>
+            <q-item-section avatar>
+              <q-icon name="done" />
+            </q-item-section>
+
+            <q-item-section>
+              New
+            </q-item-section>
+          </q-item>
         </q-list>
       </q-scroll-area>
 
       <q-img
         class="absolute-top"
-        src="statics/bg-mini.jpg"
+        src="statics/bg_panel.jpg"
         style="height: 192px"
       >
-        <div class="absolute-bottom bg-transparent">
+        <div class="absolute-bottom bg-transparent text-blue-grey-13">
           <q-avatar size="56px" class="q-mb-sm">
             <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
           </q-avatar>
@@ -78,7 +87,7 @@
 import { date } from "quasar";
 
 export default {
-  name: "MyLayout",
+  name: "MainLayout",
 
   data() {
     return {
@@ -96,9 +105,9 @@ export default {
 
 <style lang="scss">
 .header-image {
-  filter: grayscale(100%);
+  filter: grayscale(50%);
   height: 100%;
-  opacity: 0.2;
+  opacity: .5;
   z-index: -1;
 }
 </style>

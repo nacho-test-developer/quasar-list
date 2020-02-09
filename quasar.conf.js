@@ -41,7 +41,7 @@ module.exports = function (ctx) {
       //            (not treeshaking Quasar; biggest bundle size; convenient)
       all: 'auto',
 
-      components: ['QPopupEdit', 'QSlideItem'],
+      components: ['QPopupEdit', 'QSlideItem', 'QDialog'],
       directives: [],
 
       // Quasar plugins
