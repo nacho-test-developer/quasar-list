@@ -1,115 +1,205 @@
 <template>
   <q-layout view="lHh lpr lFf" container class="shadow-2 container">
     <q-header elevated>
-
       <q-tabs v-model="tab">
         <q-tab name="yesterday" label="Yesterday" />
         <q-tab name="today" label="Today" />
-        <q-tab name="blockers" label="Blockers">
+        <q-tab name="blocked" label="Blockers">
           <q-badge class="q-mt-xs" color="red" floating>1</q-badge>
         </q-tab>
       </q-tabs>
-
     </q-header>
 
     <q-page-container>
-      <q-page class="">
+      <q-page>
         <q-tab-panels v-model="tab" animated>
           <q-tab-panel class="q-pa-none" name="yesterday">
             <div class="q-pa-lg">
               <div class="text-h6">What did you do yesterday?</div>
             </div>
-            <Task @edit="edit($event)" :items="yesterday"></Task>
+            <Task
+              v-show="yesterdayTasks"
+              @edit="edit($event)"
+              :items="yesterdayTasks"
+            ></Task>
+            <p
+              v-show="!isLoading && !yesterdayTasks.length"
+              class="q-pa-lg text-grey-5"
+            >
+              'Daily - Yesterday' explanation
+            </p>
           </q-tab-panel>
 
           <q-tab-panel name="today">
             <div class="q-pa-lg">
               <div class="text-h6">What will you do today?</div>
             </div>
-            <Task @edit="edit($event)" :items="today"></Task>
+            <Task
+              v-show="todayTasks"
+              @edit="edit($event)"
+              :items="todayTasks"
+            ></Task>
+            <p
+              v-show="!isLoading && !todayTasks.length"
+              class="q-pa-lg text-grey-5"
+            >
+              'Daily - Today' explanation
+            </p>
           </q-tab-panel>
 
-          <q-tab-panel name="blockers">
+          <q-tab-panel name="blocked">
             <div class="q-pa-lg">
               <div class="text-h6">Any blockers?</div>
-              <span class="text-grey-6">There are impediments in your way</span>
             </div>
-              <!-- @delete="delete($event, reset())" -->
+            <!-- @delete="delete($event, reset())" -->
             <Task
+              v-show="blockedTasks"
               @edit="edit($event)"
               @delete="remove($event)"
-              :items="blockers"
+              :items="blockedTasks"
             ></Task>
+            <p
+              v-show="!isLoading && !blockedTasks.length"
+              class="q-pa-lg text-grey-5"
+            >
+              'Daily - Blocker' explanation
+            </p>
           </q-tab-panel>
         </q-tab-panels>
 
-        <q-page-sticky position="bottom-right" :offset="[18, 18]">
-          <q-btn @click="dialog = true" size="md" round color="secondary" icon="live_help" />
+        <q-inner-loading :showing="isLoading">
+          <q-spinner-gears size="50px" color="primary" />
+        </q-inner-loading>
+
+        <q-page-sticky
+          v-show="!isLoading"
+          position="bottom-right"
+          :offset="[18, 18]"
+        >
+          <q-btn
+            @click="addTaskDialog()"
+            size="lg"
+            round
+            color="secondary"
+            icon="add"
+          />
         </q-page-sticky>
       </q-page>
     </q-page-container>
 
-    <Dialog :show="dialog" @close="close($event)"></Dialog>
+    <q-dialog v-model="dialog">
+      <q-card style="min-width: 90vw">
+        <q-card-section>
+          <div class="text-h6">Add new task</div>
+        </q-card-section>
 
+        <q-card-section class="q-pt-none">
+          <q-input
+            dense
+            v-model="newTask"
+            autofocus
+            @keyup.enter="saveNewTask()"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right" class="text-primary">
+          <q-btn flat label="Cancel" v-close-popup />
+          <q-btn flat label="Save" @click="saveNewTask()" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- <Dialog :show="dialog" @close="close($event)"></Dialog> -->
   </q-layout>
 </template>
 
 <script>
-import Dialog from "./../components/Dialog.vue";
+// Firebase
+import { db } from "./../boot/firebase.js";
+
+// Components
 import Task from "./../components/Task.vue";
 
 export default {
   components: {
-    Dialog,
     Task
   },
-  data () {
+  data() {
     return {
       tab: "today",
       dialog: false,
-      yesterday: [],
-      today: [
-        {
-          title: "Hacer tarea 1",
-          done: false
-        },
-        {
-          title: "Mi tarea 2",
-          done: false
-        },
-        {
-          title:
-            "Test",
-          done: false
-        }
-      ],
-      blockers: [
-        {
-          title: "Bloqueado mal",
-          done: false
-        }
-      ]
+      isLoading: Boolean,
+      newTask: "",
+      tasks: []
+    };
+  },
+  created() {
+    this.getTasks();
+  },
+  computed: {
+    yesterdayTasks() {
+      return this.tasks.filter(item => item.category === "yesterday");
+    },
+    todayTasks() {
+      return this.tasks.filter(item => item.category === "today");
+    },
+    blockedTasks() {
+      return this.tasks.filter(item => item.category === "blocked");
     }
   },
   methods: {
     // DIALOG
     close(val) {
-      this.dialog = val
+      this.dialog = val;
     },
 
-    // TASKS
+    // GET - Task
+    async getTasks() {
+      try {
+        this.isLoading = true;
+        const results = await db.collection("tasks").get();
 
-    // Add task
-    addTask() {
-      if (this.newTask) {
-        this.tasks.push({
-          title: this.newTask,
-          done: false
+        results.forEach(res => {
+          let go = {
+            id: res.id,
+            title: res.data().title,
+            isDone: res.data().isDone,
+            category: res.data().category
+          };
+          this.tasks.push(go);
+          this.isLoading = false;
         });
-        this.newTask = "";
+      } catch (err) {
+        this.$q.notify("Error: ", err);
       }
     },
-    // Edit task
+
+    // ADD - Task
+    addTaskDialog() {
+      this.dialog = true;
+    },
+    async saveNewTask() {
+      this.dialog = false;
+      try {
+        const query = await db.collection("tasks").add({
+          title: this.newTask,
+          isDone: false,
+          category: this.tab
+        });
+        this.tasks.push({
+          id: query.id,
+          title: this.newTask,
+          isDone: false,
+          category: this.tab
+        });
+        this.newTask = "";
+        this.$q.notify("Added new task!");
+      } catch (err) {
+        this.$q.notify("Error: ", err);
+      }
+    },
+
+    // EDIT - task
     edit(e) {
       this.$q
         .dialog({
@@ -122,7 +212,7 @@ export default {
           persistent: true
         })
         .onOk(data => {
-          switch(this.tab) {
+          switch (this.tab) {
             case "today":
               this.today[e.i].title = data;
               break;
@@ -134,9 +224,10 @@ export default {
           }
         });
     },
-    // Delete task
+
+    // DELETE - task
     remove(i, reset) {
-      console.log(reset)
+      console.log(reset);
       this.$q
         .dialog({
           title: "Please confirm",
@@ -148,9 +239,9 @@ export default {
           // this.tasks.splice(i, 1);
           // this.finalize(reset)
           this.timer = setTimeout(() => {
-            reset()
-          }, 0)
-          switch(this.tab) {
+            reset();
+          }, 0);
+          switch (this.tab) {
             case "today":
               this.today.splice(i, 1);
               break;
@@ -163,11 +254,11 @@ export default {
           this.$q.notify("This item was removed");
         })
         .onCancel(() => {
-          this.finalize(reset)
+          this.finalize(reset);
         });
-    },
+    }
   }
-}
+};
 </script>
 
 <style lang="scss">
@@ -177,8 +268,11 @@ export default {
 .logo {
   filter: grayscale(50%);
   height: 100%;
-  opacity: .5;
+  opacity: 0.5;
   z-index: -1;
+}
+.q-tab-panels {
+  height: calc(100vh - 48px);
 }
 .q-tab-panel {
   padding: 0;

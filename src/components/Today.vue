@@ -13,12 +13,15 @@
       <template v-slot:left>
         <q-icon name="done" />
       </template>
+
       <template v-slot:right>
         <q-icon name="delete" />
       </template>
 
       <q-item>
-        <q-item-section @click.stop="edit(task, index)" class="text">{{ task.title }}</q-item-section>
+        <q-item-section @click.stop="edit(task, index)" class="text">{{
+          task.title
+        }}</q-item-section>
       </q-item>
     </q-slide-item>
   </q-list>
@@ -26,31 +29,28 @@
 
 <script>
 export default {
-  props: [
-    'items'
-  ],
+  props: ["items"],
   methods: {
-
     // SLIDE HANDLER
-    onLeft (task, { reset }) {
-      task.done = !task.done
-      this.finalize2(reset)
+    onLeft(task, { reset }) {
+      task.done = !task.done;
+      this.finalize2(reset);
     },
-    onRight (val, { reset }) {
-      this.deleteTask(val, reset)
+    onRight(val, { reset }) {
+      this.deleteTask(val, reset);
     },
-    finalize (reset) {
+    finalize(reset) {
       this.timer = setTimeout(() => {
-        reset()
-      }, 0)
+        reset();
+      }, 0);
     },
-    finalize2 (reset) {
+    finalize2(reset) {
       this.timer = setTimeout(() => {
-        reset()
-      }, 300)
+        reset();
+      }, 300);
     },
-    beforeDestroy () {
-      clearTimeout(this.timer)
+    beforeDestroy() {
+      clearTimeout(this.timer);
     },
 
     // Delete task
@@ -65,10 +65,10 @@ export default {
         .onOk(() => {
           this.tasks.splice(i, 1);
           this.$q.notify("This item was removed");
-          this.finalize(reset)
+          this.finalize(reset);
         })
         .onCancel(() => {
-          this.finalize(reset)
+          this.finalize(reset);
         });
     },
     // Add task
@@ -94,13 +94,12 @@ export default {
           persistent: true
         })
         .onOk(data => {
-          this.tasks[i].title = data
+          this.tasks[i].title = data;
         });
     }
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>
-
 </style>

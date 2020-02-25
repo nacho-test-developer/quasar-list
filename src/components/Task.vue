@@ -1,12 +1,12 @@
 <template>
-  <q-list class="bg-white" separator v-if="items.length">
-    <q-separator/>
+  <q-list class="bg-white" separator>
+    <q-separator v-show="items.length" />
     <q-slide-item
       v-for="(task, index) in items"
       :key="task.title"
       clickable
       v-ripple
-      :class="{ 'done bg-grey-2': task.done }"
+      :class="{ 'done bg-grey-2': task.isDone }"
       @left="onLeft(task, $event)"
       @right="onRight(index, $event)"
       right-color="red"
@@ -19,47 +19,40 @@
       </template>
 
       <q-item>
-        <q-item-section @click.stop="edit(task, index)" class="text">
-          - {{ task.title }}
-        </q-item-section>
+        <q-item-section
+          @click.stop="edit(task, index)"
+          class="text"
+          v-text="`- ${task.title}`"
+        />
       </q-item>
     </q-slide-item>
     <q-separator />
   </q-list>
-  <Empty v-else />
 </template>
 
 <script>
-import Empty from "./Empty";
-
 export default {
-  props: [
-    'items'
-  ],
-  components: {
-    Empty
-  },
+  props: ["items"],
   methods: {
-
     // SLIDE HANDLER
-    onLeft (task, { reset }) {
-      task.done = !task.done;
+    onLeft(task, { reset }) {
+      task.isDone = !task.isDone;
       this.timer = setTimeout(() => {
-        reset()
-      }, 300)
+        reset();
+      }, 300);
     },
-    onRight (val, { reset }) {
+    onRight(val, { reset }) {
       // this.delete(val, reset)
-      this.delete(val)
+      this.delete(val);
     },
-    finalize (reset) {
+    finalize(reset) {
       this.timer = setTimeout(() => {
-        reset()
-      }, 0)
+        reset();
+      }, 0);
     },
 
-    beforeDestroy () {
-      clearTimeout(this.timer)
+    beforeDestroy() {
+      clearTimeout(this.timer);
     },
 
     // Delete task
@@ -83,12 +76,12 @@ export default {
     // Delete task
     delete(i, reset) {
       // this.$emit('delete', {i, reset})
-      this.$emit('delete', i)
+      this.$emit("delete", i);
     },
     // Edit task
     edit(task, i) {
-      this.$emit('edit', {task , i})
+      this.$emit("edit", { task, i });
     }
   }
-}
+};
 </script>
