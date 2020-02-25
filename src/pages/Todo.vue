@@ -74,6 +74,7 @@ export default {
     };
   },
   methods: {
+    // SLIDE HANDLER
     onLeft (task, { reset }) {
       task.done = !task.done
       this.finalize2(reset)
@@ -94,6 +95,8 @@ export default {
     beforeDestroy () {
       clearTimeout(this.timer)
     },
+
+    // Delete task
     deleteTask(i, reset) {
       this.$q
         .dialog({
@@ -111,6 +114,7 @@ export default {
           this.finalize(reset)
         });
     },
+    // Add task
     addTask() {
       if (this.newTask) {
         this.tasks.push({
@@ -120,6 +124,7 @@ export default {
         this.newTask = "";
       }
     },
+    // Edit task
     edit(task, i) {
       this.$q
         .dialog({
