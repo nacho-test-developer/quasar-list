@@ -22,7 +22,7 @@
         <q-item-section
           @click.stop="edit(task, index)"
           class="text"
-          v-text="`- ${task.title}`"
+          v-text="task.title"
         />
       </q-item>
     </q-slide-item>
@@ -37,9 +37,10 @@ export default {
     // SLIDE HANDLER
     onLeft(task, { reset }) {
       task.isDone = !task.isDone;
+      this.done(task);
       this.timer = setTimeout(() => {
         reset();
-      }, 300);
+      }, 200);
     },
     onRight(val, { reset }) {
       // this.delete(val, reset)
@@ -77,6 +78,10 @@ export default {
     delete(i, reset) {
       // this.$emit('delete', {i, reset})
       this.$emit("delete", i);
+    },
+    // IsDone task
+    done(task) {
+      this.$emit("done", task);
     },
     // Edit task
     edit(task, i) {

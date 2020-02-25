@@ -5,7 +5,7 @@
         <q-tab name="yesterday" label="Yesterday" />
         <q-tab name="today" label="Today" />
         <q-tab name="blocked" label="Blockers">
-          <q-badge class="q-mt-xs" color="red" floating>1</q-badge>
+          <q-badge class="q-mt-xs" color="red" floating v-text="blockedBadge" />
         </q-tab>
       </q-tabs>
     </q-header>
@@ -13,6 +13,7 @@
     <q-page-container>
       <q-page>
         <q-tab-panels v-model="tab" animated>
+          <!-- YESTERDAY -->
           <q-tab-panel class="q-pa-none" name="yesterday">
             <div class="q-pa-lg">
               <div class="text-h6">What did you do yesterday?</div>
@@ -20,6 +21,7 @@
             <Task
               v-show="yesterdayTasks"
               @edit="edit($event)"
+              @done="done($event)"
               :items="yesterdayTasks"
             ></Task>
             <p
@@ -29,7 +31,7 @@
               'Daily - Yesterday' explanation
             </p>
           </q-tab-panel>
-
+          <!-- TODAY -->
           <q-tab-panel name="today">
             <div class="q-pa-lg">
               <div class="text-h6">What will you do today?</div>
@@ -37,6 +39,7 @@
             <Task
               v-show="todayTasks"
               @edit="edit($event)"
+              @done="done($event)"
               :items="todayTasks"
             ></Task>
             <p
@@ -46,7 +49,7 @@
               'Daily - Today' explanation
             </p>
           </q-tab-panel>
-
+          <!-- BLOCKERS -->
           <q-tab-panel name="blocked">
             <div class="q-pa-lg">
               <div class="text-h6">Any blockers?</div>
@@ -56,6 +59,7 @@
               v-show="blockedTasks"
               @edit="edit($event)"
               @delete="remove($event)"
+              @done="done($event)"
               :items="blockedTasks"
             ></Task>
             <p
@@ -66,11 +70,11 @@
             </p>
           </q-tab-panel>
         </q-tab-panels>
-
+        <!-- LOADING -->
         <q-inner-loading :showing="isLoading">
           <q-spinner-gears size="50px" color="primary" />
         </q-inner-loading>
-
+        <!-- ADD BUTTON -->
         <q-page-sticky
           v-show="!isLoading"
           position="bottom-right"
@@ -86,13 +90,12 @@
         </q-page-sticky>
       </q-page>
     </q-page-container>
-
+    <!-- DIALOG - New task -->
     <q-dialog v-model="dialog">
       <q-card style="min-width: 90vw">
         <q-card-section>
           <div class="text-h6">Add new task</div>
         </q-card-section>
-
         <q-card-section class="q-pt-none">
           <q-input
             dense
@@ -101,15 +104,12 @@
             @keyup.enter="saveNewTask()"
           />
         </q-card-section>
-
         <q-card-actions align="right" class="text-primary">
           <q-btn flat label="Cancel" v-close-popup />
           <q-btn flat label="Save" @click="saveNewTask()" />
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-    <!-- <Dialog :show="dialog" @close="close($event)"></Dialog> -->
   </q-layout>
 </template>
 
@@ -145,14 +145,15 @@ export default {
     },
     blockedTasks() {
       return this.tasks.filter(item => item.category === "blocked");
+    },
+    blockedBadge() {
+      const completedBlockers = this.blockedTasks.filter(
+        item => item.isDone === true
+      );
+      return this.blockedTasks.length - completedBlockers.length;
     }
   },
   methods: {
-    // DIALOG
-    close(val) {
-      this.dialog = val;
-    },
-
     // GET - Task
     async getTasks() {
       try {
@@ -212,17 +213,44 @@ export default {
           persistent: true
         })
         .onOk(data => {
-          switch (this.tab) {
-            case "today":
-              this.today[e.i].title = data;
-              break;
-            case "yesterday":
-              this.yesterday[e.i].title = data;
-              break;
-            default:
-              this.blockers[e.i].title = data;
-          }
+          this.saveEdit(e.task.id, data);
         });
+    },
+    done(e) {
+      this.saveEdit(e.id, e.isDone);
+    },
+    async saveEdit(id, data) {
+      try {
+        switch (typeof data) {
+          // If data type is equal String
+          case "string":
+            const queryTitle = await db
+              .collection("tasks")
+              .doc(id)
+              .update({
+                title: data
+              });
+            const local_TITLE = this.tasks.filter(item => item.id === id)[0];
+            local_TITLE.title = data;
+            break;
+          default:
+            const queryIsDone = await db
+              .collection("tasks")
+              .doc(id)
+              .update({
+                isDone: data
+              });
+            const local_IS_DONE = this.tasks.filter(item => item.id === id)[0];
+            local_IS_DONE.isDone = data;
+        }
+        this.$q.notify({
+          progress: true,
+          message: "Updated task!",
+          icon: "done"
+        });
+      } catch (err) {
+        this.$q.notify("Error: ", err);
+      }
     },
 
     // DELETE - task
@@ -278,4 +306,3 @@ export default {
   padding: 0;
 }
 </style>
-
