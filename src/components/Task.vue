@@ -8,7 +8,7 @@
       v-ripple
       :class="{ 'done bg-grey-2': task.isDone }"
       @left="onLeft(task, $event)"
-      @right="onRight(index, $event)"
+      @right="onRight(task, $event)"
       right-color="red"
     >
       <template v-slot:left>
@@ -37,19 +37,20 @@ export default {
     // SLIDE HANDLER
     onLeft(task, { reset }) {
       task.isDone = !task.isDone;
+
       this.done(task);
+
       this.timer = setTimeout(() => {
         reset();
       }, 200);
     },
-    onRight(val, { reset }) {
-      // this.delete(val, reset)
-      this.delete(val);
-    },
-    finalize(reset) {
+
+    onRight(task, { reset }) {
+      this.delete(task);
+
       this.timer = setTimeout(() => {
         reset();
-      }, 0);
+      }, 200);
     },
 
     beforeDestroy() {
@@ -57,27 +58,8 @@ export default {
     },
 
     // Delete task
-    // deleteTask(i, reset) {
-    //   this.$q
-    //     .dialog({
-    //       title: "Please confirm",
-    //       message: "Really do you want to delete this item?",
-    //       cancel: true,
-    //       persistent: true
-    //     })
-    //     .onOk(() => {
-    //       this.tasks.splice(i, 1);
-    //       this.$q.notify("This item was removed");
-    //       this.finalize(reset)
-    //     })
-    //     .onCancel(() => {
-    //       this.finalize(reset)
-    //     });
-    // },
-    // Delete task
-    delete(i, reset) {
-      // this.$emit('delete', {i, reset})
-      this.$emit("delete", i);
+    delete(task) {
+      this.$emit("delete", task);
     },
     // IsDone task
     done(task) {

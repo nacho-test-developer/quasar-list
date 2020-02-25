@@ -22,6 +22,7 @@
               v-show="yesterdayTasks"
               @edit="edit($event)"
               @done="done($event)"
+              @delete="remove($event)"
               :items="yesterdayTasks"
             ></Task>
             <p
@@ -40,6 +41,7 @@
               v-show="todayTasks"
               @edit="edit($event)"
               @done="done($event)"
+              @delete="remove($event)"
               :items="todayTasks"
             ></Task>
             <p
@@ -54,12 +56,11 @@
             <div class="q-pa-lg">
               <div class="text-h6">Any blockers?</div>
             </div>
-            <!-- @delete="delete($event, reset())" -->
             <Task
               v-show="blockedTasks"
               @edit="edit($event)"
-              @delete="remove($event)"
               @done="done($event)"
+              @delete="remove($event)"
               :items="blockedTasks"
             ></Task>
             <p
@@ -254,8 +255,7 @@ export default {
     },
 
     // DELETE - task
-    remove(i, reset) {
-      console.log(reset);
+    remove(e) {
       this.$q
         .dialog({
           title: "Please confirm",
@@ -264,26 +264,36 @@ export default {
           persistent: true
         })
         .onOk(() => {
-          // this.tasks.splice(i, 1);
-          // this.finalize(reset)
-          this.timer = setTimeout(() => {
-            reset();
-          }, 0);
-          switch (this.tab) {
-            case "today":
-              this.today.splice(i, 1);
-              break;
-            case "yesterday":
-              this.yesterday.splice(i, 1);
-              break;
-            default:
-              this.blockers.splice(i, 1);
-          }
-          this.$q.notify("This item was removed");
-        })
-        .onCancel(() => {
-          this.finalize(reset);
+          this.resetTask(e.id);
         });
+    },
+
+    async resetTask(id) {
+      try {
+        const queryTitle = await db
+          .collection("tasks")
+          .doc(id)
+          .delete();
+
+        const local_TASK = this.tasks.filter(item => item.id === id)[0];
+        const selected_TASK = this.tasks.indexOf(local_TASK);
+        if (selected_TASK !== -1) {
+          this.tasks.splice(selected_TASK, 1);
+        }
+
+        this.$q.notify({
+          progress: true,
+          message: "Updated task!",
+          icon: "done"
+        });
+      } catch (error) {
+        this.$q.notify({
+          message: error,
+          color: "red",
+          textColor: "white",
+          icon: "clear"
+        });
+      }
     }
   }
 };
