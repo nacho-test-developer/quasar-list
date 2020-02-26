@@ -1,6 +1,12 @@
 <template>
   <q-layout view="lHh lpr lFf" container class="shadow-2 container">
     <q-header elevated>
+      <q-toolbar v-show="false">
+        <q-btn flat round dense icon="menu" class="q-mr-sm" />
+        <q-space></q-space>
+        <q-btn flat round dense icon="search" class="q-mr-xs" />
+        <q-btn flat round dense icon="group_add" />
+      </q-toolbar>
       <q-tabs v-model="tab">
         <q-tab name="yesterday" label="Yesterday" />
         <q-tab name="today" label="Today" />
@@ -129,7 +135,7 @@ export default {
     return {
       tab: "today",
       dialog: false,
-      isLoading: Boolean,
+      isLoading: false,
       newTask: "",
       tasks: []
     };
@@ -169,10 +175,11 @@ export default {
             category: res.data().category
           };
           this.tasks.push(go);
-          this.isLoading = false;
         });
       } catch (err) {
         this.$q.notify("Error: ", err);
+      } finally {
+        this.isLoading = false;
       }
     },
 
@@ -182,6 +189,7 @@ export default {
     },
     async saveNewTask() {
       this.dialog = false;
+      this.isLoading = true;
       try {
         const query = await db.collection("tasks").add({
           title: this.newTask,
@@ -198,6 +206,8 @@ export default {
         this.$q.notify("Added new task!");
       } catch (err) {
         this.$q.notify("Error: ", err);
+      } finally {
+        this.isLoading = false;
       }
     },
 
@@ -221,6 +231,7 @@ export default {
       this.saveEdit(e.id, e.isDone);
     },
     async saveEdit(id, data) {
+      this.isLoading = true;
       try {
         switch (typeof data) {
           // If data type is equal String
@@ -251,6 +262,8 @@ export default {
         });
       } catch (err) {
         this.$q.notify("Error: ", err);
+      } finally {
+        this.isLoading = false;
       }
     },
 
@@ -269,6 +282,7 @@ export default {
     },
 
     async resetTask(id) {
+      this.isLoading = true;
       try {
         const queryTitle = await db
           .collection("tasks")
@@ -283,7 +297,7 @@ export default {
 
         this.$q.notify({
           progress: true,
-          message: "Updated task!",
+          message: "Deleted task!",
           icon: "done"
         });
       } catch (error) {
@@ -293,6 +307,8 @@ export default {
           textColor: "white",
           icon: "clear"
         });
+      } finally {
+        this.isLoading = false;
       }
     }
   }
