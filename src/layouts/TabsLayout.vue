@@ -316,6 +316,9 @@ export default {
 </script>
 
 <style lang="scss">
+html {
+  overflow: hidden;
+}
 .container {
   height: 100vh;
 }
