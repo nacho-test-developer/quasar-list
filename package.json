@@ -11,7 +11,7 @@
     "dev": "quasar dev",
     "pwa": "quasar dev -m pwa",
     "build": "quasar build",
-    "build:pwa": "quasar dev -m pwa"
+    "build:pwa": "quasar build -m pwa"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
