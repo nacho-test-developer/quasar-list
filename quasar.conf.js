@@ -90,12 +90,12 @@ module.exports = function(ctx) {
       workboxPluginMode: "GenerateSW", // 'GenerateSW' or 'InjectManifest'
       workboxOptions: {}, // only for GenerateSW
       manifest: {
-        name: "Quasar App",
-        short_name: "Quasar App",
-        description: "A Quasar Framework app",
-        display: "standalone",
+        name: "Daily",
+        short_name: "Daily",
+        description: "Daily app for CEG team",
+        display: "standalone", // standalone
         orientation: "portrait",
-        background_color: "#ffffff",
+        background_color: "#4F5653",
         theme_color: "#027be3",
         icons: [
           {
@@ -124,6 +124,10 @@ module.exports = function(ctx) {
             type: "image/png"
           }
         ]
+      },
+      metaVariables: {
+        appleMobileWebAppCapable: "yes",
+        appleMobileWebAppStatusBarStyle: "default"
       }
     },
 
